@@ -23,6 +23,14 @@ void NetworkRequest::send(const QVariant& data)
         usePOST = true;
     }
 
+    if (m_Reply)
+    {
+        qDebug() << "Abort. A request is already in progress";
+        return;
+    }
+
+    setReadyState(ReadyStateEnum::OPENED);
+
     if (usePOST)
     {
         m_Reply = post(data);
@@ -57,6 +65,8 @@ void NetworkRequest::onFinished()
     setResponse(m_Reply->readAll());
     setError(static_cast<NetworkErrorEnum::NetworkError>(m_Reply->error()));
     setErrorString(m_Reply->errorString());
+
+    disconnect(m_Reply, &QNetworkReply::finished, this, &NetworkRequest::onFinished);
 
     m_Reply->deleteLater();
     m_Reply = nullptr;
@@ -136,6 +146,7 @@ QNetworkReply* NetworkRequest::get(const QVariant& data)
     QUrl url = urlBuilder.toEncoded();
     QNetworkRequest request(url);
     QNetworkReply* reply = manager()->get(request);
+    qDebug() << Q_FUNC_INFO << url << reply;
     return reply;
 }
 
@@ -146,5 +157,6 @@ QNetworkReply* NetworkRequest::post(const QVariant& data)
     QByteArray body = urlBuilder.query().toUtf8();
     QNetworkRequest request(url);
     QNetworkReply* reply = manager()->post(request, body);
+    qDebug() << Q_FUNC_INFO << url << body << reply;
     return reply;
 }

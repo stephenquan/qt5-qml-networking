@@ -1,6 +1,5 @@
 #include "UrlBuilder.h"
 #include <QUrlQuery>
-#include <QDebug>
 
 UrlBuilder::UrlBuilder(const QUrl& url, const QVariant& queryItems)
 {
@@ -14,7 +13,6 @@ QString UrlBuilder::query() const
     {
         QString key = iter.key();
         QVariant values = iter.value();
-        qDebug() << Q_FUNC_INFO << key << values;
         if (values.canConvert<QVariantList>())
         {
             foreach (QVariant value, values.toList())
@@ -33,8 +31,6 @@ QString UrlBuilder::query() const
 
 void UrlBuilder::set(const QUrl &url, const QVariant &queryItems)
 {
-    qDebug() << Q_FUNC_INFO << url << queryItems;
-
     m_QueryItems.clear();
 
     QVariantMap _queryItems;
@@ -57,12 +53,10 @@ void UrlBuilder::set(const QUrl &url, const QVariant &queryItems)
         if (!m_QueryItems.contains(key))
         {
             m_QueryItems[key] = value;
-            qDebug() << Q_FUNC_INFO << "new: " << key << value;
             continue;
         }
 
         QVariant oldValue = m_QueryItems[key];
-        qDebug() << Q_FUNC_INFO << "merge: " << key << oldValue << value;
         QVariantList list;
         if (oldValue.canConvert<QVariantList>())
         {

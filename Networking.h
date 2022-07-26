@@ -25,52 +25,19 @@ class Networking : public QObject
     QML_SINGLETON
 
 public:
-    Networking(QObject* parent = nullptr) :
-        QObject(parent),
-        m_UseSystemProxy(false)
-    {
-    }
-
-    static QObject* singletonProvider(QQmlEngine* engine, QJSEngine* jsEngine)
-    {
-        Q_UNUSED(engine)
-        Q_UNUSED(jsEngine)
-        return new Networking();
-    }
+    Networking(QObject* parent = nullptr);
 
 signals:
     void proxyChanged();
     void useSystemProxyChanged();
 
 protected:
-    bool m_UseSystemProxy;
-    QUrl m_Proxy;
+    bool useSystemProxy() const;
+    void setUseSystemProxy(bool useSystemProxy);
+    QUrl proxy() const;
+    void setProxy(const QUrl& proxy);
 
-    bool useSystemProxy() const { return m_UseSystemProxy; }
-
-    void setUseSystemProxy(bool useSystemProxy)
-    {
-        QNetworkProxyFactory::setUseSystemConfiguration(useSystemProxy);
-
-        m_UseSystemProxy = useSystemProxy;
-
-        emit useSystemProxyChanged();
-    }
-
-    QUrl proxy() const { return m_Proxy; }
-
-    void setProxy(const QUrl& proxy)
-    {
-        m_UseSystemProxy = false;
-        emit useSystemProxyChanged();
-
-        m_Proxy = proxy;
-
-        QQmlEngine* engine = qmlEngine(this);
-        QNetworkAccessManager* manager = engine->networkAccessManager();
-        manager->setProxy(QNetworkProxy(QNetworkProxy::HttpProxy, proxy.host(), proxy.port()));
-        emit proxyChanged();
-    }
+    static QUrl QNetworkProxyToQUrl(const QNetworkProxy& networkProxy);
 
 };
 
