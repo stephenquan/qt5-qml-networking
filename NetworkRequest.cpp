@@ -1,8 +1,14 @@
 #include "NetworkRequest.h"
 #include "UrlBuilder.h"
+#include <QNetworkProxy>
+#include <QNetworkProxyFactory>
 
 const QString NetworkRequest::kMethodGET = QStringLiteral("GET");
 const QString NetworkRequest::kMethodPOST = QStringLiteral("POST");
+
+#ifdef Q_OS_IOS
+#include "NetworkingIOS.h"
+#endif
 
 NetworkRequest::NetworkRequest(QObject* parent) :
     QObject(parent),
@@ -17,6 +23,19 @@ NetworkRequest::NetworkRequest(QObject* parent) :
 void NetworkRequest::send(const QVariant& data)
 {
     bool usePOST = false;
+
+#ifdef Q_OS_IOS
+    QNetworkProxy networkProxy;
+    if (QNetworkProxyFactory::usesSystemConfiguration())
+    {
+        networkProxy = NetworkingIOS::systemProxy();
+    }
+    else
+    {
+        networkProxy = QNetworkProxy::applicationProxy();
+    }
+    manager()->setProxy(networkProxy);
+#endif
 
     if (m_Method.compare(kMethodPOST, Qt::CaseInsensitive) == 0)
     {

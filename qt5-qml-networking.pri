@@ -18,3 +18,10 @@ HEADERS += \
     $$PWD/SettingsFormat.h \
     $$PWD/UrlBuilder.h
 
+ios {
+    OBJECTIVE_HEADERS += \
+    $$PWD/NetworkingIOS.h
+
+    OBJECTIVE_SOURCES += \
+    $$PWD/NetworkingIOS.mm \
+}

@@ -1,15 +1,9 @@
 #include "Networking.h"
-
-#ifdef Q_OS_IOS
-#include <QtWebView>
-#endif
+#include "NetworkingIOS.h"
 
 Networking::Networking(QObject* parent) :
     QObject(parent)
 {
-#ifdef Q_OS_IOS
-    QtWebView::initialize();
-#endif
 }
 
 bool Networking::useSystemProxy() const
@@ -20,12 +14,19 @@ bool Networking::useSystemProxy() const
 void Networking::setUseSystemProxy(bool useSystemProxy)
 {
     bool before = Networking::useSystemProxy();
+    QUrl beforeProxy = Networking::proxy();
     QNetworkProxyFactory::setUseSystemConfiguration(useSystemProxy);
     bool after = Networking::useSystemProxy();
+    QUrl afterProxy = Networking::proxy();
 
     if (after != before)
     {
         emit useSystemProxyChanged();
+    }
+
+    if (afterProxy != beforeProxy)
+    {
+        emit proxyChanged();
     }
 }
 
@@ -33,6 +34,10 @@ QUrl Networking::proxy() const
 {
     if (QNetworkProxyFactory::usesSystemConfiguration())
     {
+#ifdef Q_OS_IOS
+        QNetworkProxy iOSNetworkProxy = NetworkingIOS::systemProxy();
+        return QNetworkProxyToQUrl(iOSNetworkProxy);
+#else
         QNetworkProxyQuery query(QUrl("https://www.arcgis.com"));
         QList<QNetworkProxy> proxies = QNetworkProxyFactory::proxyForQuery(query);
         if (!proxies.length())
@@ -41,6 +46,7 @@ QUrl Networking::proxy() const
         }
         QUrl url = QNetworkProxyToQUrl(proxies[0]);
         return url;
+#endif
     }
 
     QNetworkProxy networkProxy = QNetworkProxy::applicationProxy();
